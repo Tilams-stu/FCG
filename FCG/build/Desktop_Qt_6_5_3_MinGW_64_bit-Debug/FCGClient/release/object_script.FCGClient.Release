@@ -1,0 +1,11 @@
+release/gamecontroller.o
+release/main.o
+release/mainview.o
+release/gamemodel.o
+release/gamestate.o
+release/plane.o
+release/boardpanel.o
+release/connectdialog.o
+release/controlpanel.o
+release/moc_mainview.o
+release/moc_boardpanel.o

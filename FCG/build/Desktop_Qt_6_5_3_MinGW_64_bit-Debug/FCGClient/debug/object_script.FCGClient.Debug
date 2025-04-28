@@ -1,0 +1,11 @@
+debug/gamecontroller.o
+debug/main.o
+debug/mainview.o
+debug/gamemodel.o
+debug/gamestate.o
+debug/plane.o
+debug/boardpanel.o
+debug/connectdialog.o
+debug/controlpanel.o
+debug/moc_mainview.o
+debug/moc_boardpanel.o
