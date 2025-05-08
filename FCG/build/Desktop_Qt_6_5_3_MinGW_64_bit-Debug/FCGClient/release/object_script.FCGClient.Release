@@ -7,5 +7,7 @@ release/plane.o
 release/boardpanel.o
 release/connectdialog.o
 release/controlpanel.o
+release/moc_gamecontroller.o
 release/moc_mainview.o
 release/moc_boardpanel.o
+release/moc_controlpanel.o

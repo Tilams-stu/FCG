@@ -3,8 +3,15 @@
 
 #include <QWidget>
 #include <QLabel>
+#include <QObject>
 #include <QPushButton>
 #include <QButtonGroup>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
+#include <QMessageBox>
+#include <QRandomGenerator>
+#include <QTextEdit>
 class GameController;
 
 
@@ -25,7 +32,6 @@ public:
     explicit ControlPanel( QWidget *parent = nullptr);
     void setGamePhase(GamePhase phase, const QString& message);
     void setDiceResult(int value);
-    void enableControls(bool enabled);
 
 signals:
     void readyClicked();
@@ -42,6 +48,7 @@ private slots:
 private:
     void setupUI();
     void setupConnections();
+    void setAllControlsEnabled(bool enabled);
 
     // UI Components
     QLabel* serverMessage;

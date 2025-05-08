@@ -7,5 +7,7 @@ debug/plane.o
 debug/boardpanel.o
 debug/connectdialog.o
 debug/controlpanel.o
+debug/moc_gamecontroller.o
 debug/moc_mainview.o
 debug/moc_boardpanel.o
+debug/moc_controlpanel.o

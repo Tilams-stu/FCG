@@ -1,10 +1,5 @@
 #include "controlpanel.h"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QMessageBox>
-#include <QRandomGenerator>
-#include <QTextEdit>
+
 
 ControlPanel::ControlPanel(QWidget *parent)
     : QWidget(parent)
@@ -12,6 +7,25 @@ ControlPanel::ControlPanel(QWidget *parent)
     setupUI();
     setupConnections();
 
+}
+
+void ControlPanel::setGamePhase(GamePhase phase, const QString &message)
+{
+    serverMessage->setText(message);
+
+    if(phase == WAITING) setAllControlsEnabled(false);
+    else{
+        const bool rollEnabled = (phase == ROLL_AND_CHOOSE_PLANE);
+        const bool flyEnabled = (phase == CHOOSE_FLY_OVER);
+
+        rollDiceButton->setEnabled(rollEnabled);
+        planeButtons->setExclusive(rollEnabled);
+        QList<QAbstractButton*> planeBtns = planeButtons->buttons();
+        for(auto btn : planeBtns) btn->setEnabled(rollEnabled);
+
+        flyYesButton->setEnabled(flyEnabled);
+        flyNoButton->setEnabled(flyEnabled);
+    }
 }
 
 void ControlPanel::setupUI()
@@ -113,7 +127,7 @@ void ControlPanel::setupUI()
         messageBox->show();
     });
     mainLayout->addStretch();
-    enableControls(false);
+    setAllControlsEnabled(false);
 }
 
 void ControlPanel::setupConnections()
@@ -140,4 +154,17 @@ void ControlPanel::setupConnections()
     connect(flyYesButton, &QPushButton::clicked, this,[this](){ emit flyOverChoice(true); });
     connect(flyNoButton, &QPushButton::clicked, this,[this](){ emit flyOverChoice(false); });
 }
+
+void ControlPanel::setAllControlsEnabled(bool enabled)
+{
+    rollDiceButton->setEnabled(enabled);
+    planeButtons->setExclusive(enabled);
+    QList<QAbstractButton*> planeBtns = planeButtons->buttons();
+    for(auto btn : planeBtns) btn->setEnabled(enabled);
+
+    flyYesButton->setEnabled(enabled);
+    flyNoButton->setEnabled(enabled);
+}
+
+
 

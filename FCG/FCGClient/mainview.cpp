@@ -15,7 +15,7 @@ MainView::MainView(GameController* controller, const QString& username,QWidget *
 
     setupUI();
 
-    //setupConnections();
+    setupConnections();
 
     setWindowTitle(tr("FCG - %1").arg(username));
     setMinimumSize(1200,800);
@@ -25,23 +25,30 @@ MainView::~MainView()
 {
     delete ui;
 }
+
+ControlPanel* MainView::getControlPanel()
+{
+    return controlPanel;
+}
 void MainView::setupUI()
 {
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
 
-    boardPanel = new BoardPanel(this);
-    mainLayout->addWidget(boardPanel, 7);
+    BoardPanel* boardPanel= new BoardPanel(this);
+    ControlPanel* controlPanel = new ControlPanel(this);
 
-    //controlPanel = new ControlPanel(this);
-    //mainLayout->addWidget(controlPanel, 3);
-
+    mainLayout->addWidget(boardPanel,7);
+    mainLayout->addWidget(controlPanel,3);
 }
 
 void MainView::setupConnections()
 {
-    //connect(controller, &GameController::gameStateUpdated,
-    //       qobject_cast<BoardPanel*>(ui->boardPanel), &BoardPanel::updateBoardState);
+    //ControlPanel* panel = new ControlPanel(this);
 
-    //connect(ui->controlPanel, &ControlPanel::readyClicked,
-    //        controller, &GameController::sendReady);
+    //connect(controller, &GameController::gameStateUpdated,
+    //        boardPanel, &BoardPanel::updateBoardState);
+    connect(controller, &GameController::serverMessageReceived,
+            this, &MainView::showMessage);
+    connect(controller, &GameController::updateGamePhase,
+            controlPanel,&ControlPanel::setGamePhase);
 }

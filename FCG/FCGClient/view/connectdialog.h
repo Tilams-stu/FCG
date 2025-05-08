@@ -4,6 +4,10 @@
 #include <QDialog>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QFormLayout>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QIntValidator>
 
 class ConnectDialog : public QDialog
 {

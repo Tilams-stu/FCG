@@ -3,9 +3,10 @@
 
 #include <QLabel>
 #include <QWidget>
-
+#include <QObject>
 #include <view/boardpanel.h>
 #include <view/controlpanel.h>
+
 
 class GameController;
 class BoardPanel;
@@ -22,17 +23,19 @@ class MainView : public QWidget
     Q_OBJECT
 
 public:
+
+    GameController* controller;
+
     explicit MainView(GameController* controller,const QString& username,QWidget *parent = nullptr);
     ~MainView();
     void updateBoardState(const QMap<int,QList<int>>& tileStates);
     void showMessage(const QString& message);
-
+    ControlPanel* getControlPanel();
 
 private:
     Ui::MainView *ui;
     BoardPanel* boardPanel;
     ControlPanel* controlPanel;
-    GameController* controller;
     QLabel* statusLabel;
 
     void setupUI();

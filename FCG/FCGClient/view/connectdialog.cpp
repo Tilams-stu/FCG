@@ -1,9 +1,5 @@
 #include "connectdialog.h"
 
-#include <QFormLayout>
-#include <QPushButton>
-#include <QMessageBox>
-#include <QIntValidator>
 
 ConnectDialog::ConnectDialog(QWidget *parent)
     : QDialog(parent)
