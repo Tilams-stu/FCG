@@ -45,11 +45,11 @@ void MainView::setupUI()
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
 
     qDebug() << "Creating boardPanel...";
-    //boardPanel= new BoardPanel(this);
+    boardPanel = new BoardPanel(this);
     qDebug() << "Creating controlPanel...";
     controlPanel = new ControlPanel(this);
 
-    //mainLayout->addWidget(boardPanel,7);
+    mainLayout->addWidget(boardPanel,7);
     mainLayout->addWidget(controlPanel,3);
 
     setLayout(mainLayout);

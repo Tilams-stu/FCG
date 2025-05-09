@@ -25,6 +25,7 @@ void ControlPanel::setupUI()
     //准备按钮
     QGroupBox* readyGroup = new QGroupBox(tr("游戏准备"),this);
     QVBoxLayout* readyLayout = new QVBoxLayout(readyGroup);
+    readyButton = new QPushButton(tr("准备"),readyGroup);
     readyLayout->addWidget(readyButton);
     mainLayout->addWidget(readyGroup);
     mainLayout->addSpacing(10);
