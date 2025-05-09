@@ -30,8 +30,7 @@ HEADERS += \
     view/connectdialog.h \
     view/controlpanel.h
 
-FORMS += \
-    mainview.ui
+FORMS +=
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

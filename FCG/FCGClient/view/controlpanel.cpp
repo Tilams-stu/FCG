@@ -1,31 +1,16 @@
 #include "controlpanel.h"
+#include "controller/gamecontroller.h"
+#include "mainview.h"
 
-
-ControlPanel::ControlPanel(QWidget *parent)
+ControlPanel::ControlPanel(MainView* gameview,QWidget *parent)
     : QWidget(parent)
 {
+    this->gameView = gameview;
+    this->controller = gameview->getController();
     setupUI();
     setupConnections();
+    setAllControlsEnabled(false);
 
-}
-
-void ControlPanel::setGamePhase(GamePhase phase, const QString &message)
-{
-    serverMessage->setText(message);
-
-    if(phase == WAITING) setAllControlsEnabled(false);
-    else{
-        const bool rollEnabled = (phase == ROLL_AND_CHOOSE_PLANE);
-        const bool flyEnabled = (phase == CHOOSE_FLY_OVER);
-
-        rollDiceButton->setEnabled(rollEnabled);
-        planeButtons->setExclusive(rollEnabled);
-        QList<QAbstractButton*> planeBtns = planeButtons->buttons();
-        for(auto btn : planeBtns) btn->setEnabled(rollEnabled);
-
-        flyYesButton->setEnabled(flyEnabled);
-        flyNoButton->setEnabled(flyEnabled);
-    }
 }
 
 void ControlPanel::setupUI()
@@ -35,35 +20,36 @@ void ControlPanel::setupUI()
     serverMessage = new QLabel(tr("等待服务器连接..."),this);
     serverMessage->setWordWrap(true);
     mainLayout->addWidget(serverMessage);
+    mainLayout->addSpacing(10);
 
     //准备按钮
     QGroupBox* readyGroup = new QGroupBox(tr("游戏准备"),this);
     QVBoxLayout* readyLayout = new QVBoxLayout(readyGroup);
     readyLayout->addWidget(readyButton);
     mainLayout->addWidget(readyGroup);
+    mainLayout->addSpacing(10);
 
     //骰子按钮
     QGroupBox* diceGroup = new QGroupBox(tr("骰子操作"),this);
     QVBoxLayout* diceLayout = new QVBoxLayout(diceGroup);
     rollDiceButton = new QPushButton(tr("投掷骰子"),diceGroup);
-    diceResultLabel = new QLabel("0",diceGroup);
-    diceResultLabel->setAlignment(Qt::AlignCenter);
-    diceResultLabel->setStyleSheet("font-size: 24px; font-weight: bold;");
     diceLayout->addWidget(rollDiceButton);
-    diceLayout->addWidget(diceResultLabel);
     mainLayout->addWidget(diceGroup);
+    mainLayout->addSpacing(10);
 
     //飞机按钮
-    QGroupBox* planeGroup = new QGroupBox(tr("选择飞机"),this);
-    QHBoxLayout* planeLayout = new QHBoxLayout(planeGroup);
-    planeButtons = new QButtonGroup(planeGroup);
-    for(int i=1;i<=4;i++){
-        QPushButton* btn = new QPushButton(QString::number(i),planeGroup);
-        btn->setCheckable(true);
-        planeButtons->addButton(btn,i);
-        planeLayout->addWidget(btn);
-    }
-    mainLayout->addWidget(planeGroup);
+    QHBoxLayout* planesLayout = new QHBoxLayout;
+    planeButton1 = new QPushButton("飞机1");
+    planeButton2 = new QPushButton("飞机2");
+    planeButton3 = new QPushButton("飞机3");
+    planeButton4 = new QPushButton("飞机4");
+
+    planesLayout->addWidget(planeButton1);
+    planesLayout->addWidget(planeButton2);
+    planesLayout->addWidget(planeButton3);
+    planesLayout->addWidget(planeButton4);
+    mainLayout->addLayout(planesLayout);
+    mainLayout->addSpacing(10);
 
     //飞跃按钮
     QGroupBox* flyGroup = new QGroupBox(tr("飞跃操作"),this);
@@ -72,19 +58,25 @@ void ControlPanel::setupUI()
     flyNoButton = new QPushButton(tr("不飞跃(No)"),flyGroup);
     flyLayout->addWidget(flyYesButton);
     flyLayout->addWidget(flyNoButton);
+    mainLayout->addWidget(flyGroup);
+    mainLayout->addSpacing(10);
 
     //帮助按钮
     QPushButton* helpButton = new QPushButton(tr("游戏帮助"),this);
     mainLayout->addWidget(helpButton);
     connect(helpButton,&QPushButton::clicked,this,[this](){
-        QMessageBox *messageBox = new QMessageBox(this);
-        messageBox->setWindowTitle("游戏帮助");
-        messageBox->setTextFormat(Qt::RichText);
-        messageBox->setStandardButtons(QMessageBox::NoButton);
-        messageBox->setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint);
+        QDialog *helpDialog = new QDialog(this);
+        helpDialog->setWindowTitle("游戏帮助");
+        helpDialog->setMinimumSize(150, 100);
+        helpDialog->resize(600, 400);
+        helpDialog->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        helpDialog->setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
 
-        QTextEdit* textEdit = new QTextEdit(messageBox);
+        QVBoxLayout *lmainLayout = new QVBoxLayout(helpDialog);
+
+        QTextEdit *textEdit = new QTextEdit(helpDialog);
         textEdit->setReadOnly(true);
+        textEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         textEdit->setStyleSheet(
             "QTextEdit {"
             "  font-family: '微软雅黑';"
@@ -119,12 +111,10 @@ void ControlPanel::setupUI()
             "<li>在终点区域可以迭子和撞子；在己方终点处撞子后，必须至少再兜一圈才可以到达终点。</li>"
             "</ul>"
             );
-        QGridLayout* layout = qobject_cast<QGridLayout*>(messageBox->layout());
-        layout->addWidget(textEdit,0,0,1,layout->columnCount());
+        lmainLayout->addWidget(textEdit, 1);
 
-        messageBox->resize(300,200);
-        messageBox->setAttribute(Qt::WA_DeleteOnClose);
-        messageBox->show();
+        helpDialog->setAttribute(Qt::WA_DeleteOnClose);
+        helpDialog->show();
     });
     mainLayout->addStretch();
     setAllControlsEnabled(false);
@@ -132,36 +122,78 @@ void ControlPanel::setupUI()
 
 void ControlPanel::setupConnections()
 {
-    connect(readyButton,&QPushButton::clicked,this,&ControlPanel::readyClicked);
+    connect(readyButton,&QPushButton::clicked,this,&ControlPanel::handleReady);
 
-    connect(rollDiceButton,&QPushButton::clicked,this,[this](){
-        currentDice = QRandomGenerator::global()->bounded(6) + 1;
-        diceResultLabel->setText(QString::number(currentDice));
-        emit rollDiceClicked();
-    });
+    connect(rollDiceButton,&QPushButton::clicked,this,&ControlPanel::handleRollDice);
 
-    connect(planeButtons, static_cast<void(QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked),this,
-            [this](QAbstractButton *button) {
-                if (!button) return;
-                int id = planeButtons->id(button);
-                if (id == -1) {
-                    qWarning() << "按钮未分配有效 ID";
-                    return;
-                }
-                emit planeSelected(id);
-    });
+    connect(planeButton1, &QPushButton::clicked, this,[this](){ handlePlaneButton(1); });
+    connect(planeButton2, &QPushButton::clicked, this,[this](){ handlePlaneButton(2); });
+    connect(planeButton3, &QPushButton::clicked, this,[this](){ handlePlaneButton(3); });
+    connect(planeButton4, &QPushButton::clicked, this,[this](){ handlePlaneButton(4); });
 
     connect(flyYesButton, &QPushButton::clicked, this,[this](){ emit flyOverChoice(true); });
     connect(flyNoButton, &QPushButton::clicked, this,[this](){ emit flyOverChoice(false); });
 }
 
+
+void ControlPanel::setGamePhase(GamePhase phase, const QString &message)
+{
+    serverMessage->setText(message);
+
+    if(phase == WAITING) setAllControlsEnabled(false);
+    else{
+        const bool rollEnabled = (phase == ROLL_AND_CHOOSE_PLANE);
+        const bool flyEnabled = (phase == CHOOSE_FLY_OVER);
+
+        rollDiceButton->setEnabled(rollEnabled);
+        planeButton1->setEnabled(rollEnabled);
+        planeButton2->setEnabled(rollEnabled);
+        planeButton3->setEnabled(rollEnabled);
+        planeButton4->setEnabled(rollEnabled);
+        flyYesButton->setEnabled(flyEnabled);
+        flyNoButton->setEnabled(flyEnabled);
+    }
+}
+
+void ControlPanel::handleReady()
+{
+    controller->sendReady();
+    gameView->showMessage(tr("已发送准备请求，请等待其他玩家..."));
+    readyButton->setEnabled(false);
+}
+
+void ControlPanel::handleRollDice()
+{
+    currentDice = QRandomGenerator::global()->bounded(6) + 1;
+    gameView->showMessage(tr("你投出的点数是: %1").arg(currentDice));
+    rollDiceButton->setEnabled(false);
+}
+
+void ControlPanel::handlePlaneButton(int id)
+{
+    if(currentDice == 0){
+        gameView->showMessage(tr("请先投骰子，再选择飞机!"));
+        return ;
+    }
+    controller->sendPlaneOperation(currentDice,id);
+    currentDice = 0;
+    setAllControlsEnabled(false);
+}
+
+void ControlPanel::handleFlyOver(bool yes)
+{
+    controller->sendFlyOverChoice(yes);
+    setAllControlsEnabled(false);
+
+}
+
 void ControlPanel::setAllControlsEnabled(bool enabled)
 {
     rollDiceButton->setEnabled(enabled);
-    planeButtons->setExclusive(enabled);
-    QList<QAbstractButton*> planeBtns = planeButtons->buttons();
-    for(auto btn : planeBtns) btn->setEnabled(enabled);
-
+    planeButton1->setEnabled(enabled);
+    planeButton2->setEnabled(enabled);
+    planeButton3->setEnabled(enabled);
+    planeButton4->setEnabled(enabled);
     flyYesButton->setEnabled(enabled);
     flyNoButton->setEnabled(enabled);
 }

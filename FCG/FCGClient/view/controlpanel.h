@@ -13,7 +13,7 @@
 #include <QRandomGenerator>
 #include <QTextEdit>
 class GameController;
-
+class MainView;
 
 
 class ControlPanel : public QWidget
@@ -29,13 +29,13 @@ public:
     };
     Q_ENUM(GamePhase)
 
-    explicit ControlPanel( QWidget *parent = nullptr);
+    explicit ControlPanel(MainView* gameView,QWidget *parent = nullptr);
     void setGamePhase(GamePhase phase, const QString& message);
-    void setDiceResult(int value);
+    //void setDiceResult(int value);
 
 signals:
-    void readyClicked();
-    void rollDiceClicked();
+    //void readyClicked();
+    //void rollDiceClicked();
     void planeSelected(int planeId);
     void flyOverChoice(bool accepted);
 
@@ -50,15 +50,19 @@ private:
     void setupConnections();
     void setAllControlsEnabled(bool enabled);
 
+    MainView* gameView;
+    GameController* controller;
+
     // UI Components
     QLabel* serverMessage;
     QPushButton* readyButton;
     QPushButton* rollDiceButton;
-    QButtonGroup* planeButtons;
+    QPushButton* planeButton1;
+    QPushButton* planeButton2;
+    QPushButton* planeButton3;
+    QPushButton* planeButton4;
     QPushButton* flyYesButton;
     QPushButton* flyNoButton;
-    QLabel* diceResultLabel;
-
     // State
     int currentDice = 0;
 };

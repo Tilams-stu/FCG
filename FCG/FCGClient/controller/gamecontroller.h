@@ -3,6 +3,7 @@
 
 #include <QTcpSocket>
 #include <mainview.h>
+#include <view/controlpanel.h>
 #include <model/gamemodel.h>
 #include <QObject>
 

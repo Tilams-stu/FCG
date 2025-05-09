@@ -11,32 +11,37 @@
 class GameController;
 class BoardPanel;
 class ControlPanel;
-
+/*
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainView;
 }
 QT_END_NAMESPACE
-
+*/
 class MainView : public QWidget
 {
     Q_OBJECT
 
 public:
 
-    GameController* controller;
+    GameController *controller;
 
-    explicit MainView(GameController* controller,const QString& username,QWidget *parent = nullptr);
+    explicit MainView(GameController* controller,
+                      const QString& username,
+                      QWidget *parent = nullptr);
     ~MainView();
     void updateBoardState(const QMap<int,QList<int>>& tileStates);
     void showMessage(const QString& message);
+
     ControlPanel* getControlPanel();
+    GameController* getController();
 
 private:
-    Ui::MainView *ui;
+    //Ui::MainView *ui;
     BoardPanel* boardPanel;
     ControlPanel* controlPanel;
     QLabel* statusLabel;
+    QString username;
 
     void setupUI();
     void setupConnections();
