@@ -368,7 +368,7 @@ void BoardPanel::Tile::drawCircle(QPainter &painter) const
         avgY /= n;
     }
 
-    QPointF center = m_polygon.boundingRect().center();
+    //QPointF center = m_polygon.boundingRect().center();
     int r = 20/1.15;
 
     QPen pen;

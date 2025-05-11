@@ -35,10 +35,36 @@ RES_FILE      =
 SED           = $(QMAKE) -install sed
 MOVE          = move
 SUBTARGETS    =  \
+		sub-Common \
 		sub-FCGClient \
 		sub-FCGServer
 
 
+sub-Common-qmake_all:  FORCE
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
+	cd Common\ && $(MAKE) -f Makefile qmake_all
+sub-Common: FORCE
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile
+sub-Common-make_first: FORCE
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile 
+sub-Common-all: FORCE
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile all
+sub-Common-clean: FORCE
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile clean
+sub-Common-distclean: FORCE
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile distclean
+sub-Common-install_subtargets: FORCE
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile install
+sub-Common-uninstall_subtargets: FORCE
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile uninstall
 sub-FCGClient-qmake_all:  FORCE
 	@if not exist FCGClient\ mkdir FCGClient\ & if not exist FCGClient\ exit 1
 	cd FCGClient\ && $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGClient\FCGClient.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
@@ -654,48 +680,60 @@ D:/Qt/6.5.3/mingw_64/mkspecs/features/lex.prf:
 qmake: FORCE
 	@$(QMAKE) -o Makefile ..\..\FCG.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
 
-qmake_all: sub-FCGClient-qmake_all sub-FCGServer-qmake_all FORCE
+qmake_all: sub-Common-qmake_all sub-FCGClient-qmake_all sub-FCGServer-qmake_all FORCE
 
-make_first: sub-FCGClient-make_first sub-FCGServer-make_first  FORCE
-all: sub-FCGClient-all sub-FCGServer-all  FORCE
-clean: sub-FCGClient-clean sub-FCGServer-clean  FORCE
-distclean: sub-FCGClient-distclean sub-FCGServer-distclean  FORCE
+make_first: sub-Common-make_first sub-FCGClient-make_first sub-FCGServer-make_first  FORCE
+all: sub-Common-all sub-FCGClient-all sub-FCGServer-all  FORCE
+clean: sub-Common-clean sub-FCGClient-clean sub-FCGServer-clean  FORCE
+distclean: sub-Common-distclean sub-FCGClient-distclean sub-FCGServer-distclean  FORCE
 	-$(DEL_FILE) Makefile
 	-$(DEL_FILE) .qmake.stash
-install_subtargets: sub-FCGClient-install_subtargets sub-FCGServer-install_subtargets FORCE
-uninstall_subtargets: sub-FCGClient-uninstall_subtargets sub-FCGServer-uninstall_subtargets FORCE
+install_subtargets: sub-Common-install_subtargets sub-FCGClient-install_subtargets sub-FCGServer-install_subtargets FORCE
+uninstall_subtargets: sub-Common-uninstall_subtargets sub-FCGClient-uninstall_subtargets sub-FCGServer-uninstall_subtargets FORCE
 
+sub-Common-debug:
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile debug
 sub-FCGClient-debug:
 	@if not exist FCGClient\ mkdir FCGClient\ & if not exist FCGClient\ exit 1
 	cd FCGClient\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGClient\FCGClient.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile debug
 sub-FCGServer-debug:
 	@if not exist FCGServer\ mkdir FCGServer\ & if not exist FCGServer\ exit 1
 	cd FCGServer\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGServer\FCGServer.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile debug
-debug: sub-FCGClient-debug sub-FCGServer-debug
+debug: sub-Common-debug sub-FCGClient-debug sub-FCGServer-debug
 
+sub-Common-release:
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile release
 sub-FCGClient-release:
 	@if not exist FCGClient\ mkdir FCGClient\ & if not exist FCGClient\ exit 1
 	cd FCGClient\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGClient\FCGClient.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile release
 sub-FCGServer-release:
 	@if not exist FCGServer\ mkdir FCGServer\ & if not exist FCGServer\ exit 1
 	cd FCGServer\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGServer\FCGServer.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile release
-release: sub-FCGClient-release sub-FCGServer-release
+release: sub-Common-release sub-FCGClient-release sub-FCGServer-release
 
+sub-Common-check:
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile check
 sub-FCGClient-check:
 	@if not exist FCGClient\ mkdir FCGClient\ & if not exist FCGClient\ exit 1
 	cd FCGClient\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGClient\FCGClient.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile check
 sub-FCGServer-check:
 	@if not exist FCGServer\ mkdir FCGServer\ & if not exist FCGServer\ exit 1
 	cd FCGServer\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGServer\FCGServer.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile check
-check: sub-FCGClient-check sub-FCGServer-check
+check: sub-Common-check sub-FCGClient-check sub-FCGServer-check
 
+sub-Common-benchmark:
+	@if not exist Common\ mkdir Common\ & if not exist Common\ exit 1
+	cd Common\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\Common\Common.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile benchmark
 sub-FCGClient-benchmark:
 	@if not exist FCGClient\ mkdir FCGClient\ & if not exist FCGClient\ exit 1
 	cd FCGClient\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGClient\FCGClient.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile benchmark
 sub-FCGServer-benchmark:
 	@if not exist FCGServer\ mkdir FCGServer\ & if not exist FCGServer\ exit 1
 	cd FCGServer\ && ( if not exist Makefile $(QMAKE) -o Makefile D:\Desktop\qttest\FCG\FCGServer\FCGServer.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug" ) && $(MAKE) -f Makefile benchmark
-benchmark: sub-FCGClient-benchmark sub-FCGServer-benchmark
+benchmark: sub-Common-benchmark sub-FCGClient-benchmark sub-FCGServer-benchmark
 install:install_subtargets  FORCE
 
 uninstall: uninstall_subtargets FORCE
