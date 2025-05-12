@@ -43,6 +43,4 @@ void GameServer::handleNewConnection()
     }
 }
 
-void GameServer::readPlayerCount()
-{
-}
+

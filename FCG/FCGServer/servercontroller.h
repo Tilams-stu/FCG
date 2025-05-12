@@ -10,6 +10,7 @@
 
 class QTcpSocket;
 class QDataStream;
+class ClientHandler;
 
 class ServerController : public QObject
 {
@@ -25,37 +26,7 @@ public:
 
 private:
 
-    class ClientHandler : public QObject , public QRunnable
-    {
-        Q_OBJECT
 
-    public:
-        ClientHandler(qintptr socketDescriptor , int clientId, ServerController* controller);
-        ~ClientHandler();
-
-        void sendMessage(const QByteArray & message);
-
-    signals:
-        void messageReceived(int clientId , QByteArray data);
-        void disconnected(int clientId);
-
-    protected:
-        void run() override;
-
-    private slots:
-        void readData();
-        void handleDicconnected();
-
-    private:
-        void processMessage(const QByteArray & data);
-
-        qintptr socketDescriptor;
-        int clientId;
-        ServerController* controller;
-        QTcpSocket* socket;
-        QDataStream* in;
-        quint32 expectedBytes = 0;
-    };
     //成员变量
     QThreadPool executor;
     QMap<int , ClientHandler*> clients;
@@ -71,10 +42,64 @@ private:
     int lastPlaneId = 0;
 
     //客户端信息处理
-    void handleClientAction(int clientId, const QByteArray &data);
+    void handleClientAction(int clientId, const QString &action);
+    void broadcastMessage(const QString &msg);
+    void broadcastGameState(const GameState state);
 
-    void sendToClient(int clientId, const QByteArray &message);
+    void initGameAndStart();
+    void do_fly(int lastPlaneId,int currentPlayerId,const QString &choice ,GameState state);
+    void check_is_win(GameState state);
+    int getSpecialJumpTarget(int clientId,int currentPos);
+    int do_plan_OP(int clientId,int dice,int planeId,GameState state);
+    int findPlaneCurrentTile(int globalPlaneId,QMap<int ,QList<int>> tileStates);
+    void removePlaneFromTile(int planeId,int tileId,QMap<int ,QList<int>> tileStates);
+    void addPlaneToTile(int planeId,int tileId,QMap<int ,QList<int>> tileStates);
+    bool isInAirport(int tileId);
+    int getStartTile(int clientId);
+    int getAirportTile(int clientId,int planeId);
+    int getNextPosition(int clientId,int currentPos);
+    bool isExitRingPosition(int clientId,int pos);
+    int getNextOnExitPath(int clientId,int currentPos);
+    bool isFinalEnd(int clientId,int pos);
+    void handleCollision(int selfPlaneId,int tileId,QMap<int ,QList<int>> tileStates,GameState state);
+    bool isSameColor(int planeId1,int planeId2);
+    bool isTileColorMatchesClient(int clientId,int tileId);
+    void collisionDuringFly(int clientId,QMap<int ,QList<int >> tileStates,GameState state);
+    void nextTurn();
+
+    void sendToClient(int clientId, const QString &message);
+    QString getPlayerColor(int clientId);
 
 };
+class ClientHandler : public QObject , public QRunnable
+{
+    Q_OBJECT
 
+public:
+    ClientHandler(qintptr descriptor , int clientId, ServerController* controller);
+    ~ClientHandler();
+
+    void sendMessage(const QString & message);
+
+signals:
+    void messageReceived(int clientId , QString data);
+    void disconnected(int clientId);
+
+protected:
+    void run() override;
+
+private slots:
+    void readData();
+    //void handleDicconnected();
+
+private:
+    //void processMessage(const QString & data);
+
+    qintptr socketDescriptor;
+    int clientId;
+    ServerController* controller;
+    QTcpSocket* socket;
+    QDataStream* in;
+    quint32 expectedBytes = 0;
+};
 #endif // SERVERCONTROLLER_H

@@ -15,7 +15,7 @@ public:
 
 private slots:
     void handleNewConnection();
-    void readPlayerCount();
+    //void readPlayerCount();
 
 private:
     QTcpServer *tcpServer;
