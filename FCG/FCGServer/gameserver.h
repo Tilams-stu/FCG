@@ -3,26 +3,25 @@
 
 #include <QObject>
 #include <QTcpServer>
-#include <QTextStream>
+#include <QInputDialog>
 #include "servercontroller.h"
 
 class GameServer : public QObject
 {
     Q_OBJECT
 public:
-    explicit GameServer(QObject *parent = nullptr);
+    explicit GameServer(QWidget *parentWidget = nullptr, QObject *parent = nullptr);
     void startServer();
 
 private slots:
     void handleNewConnection();
-    //void readPlayerCount();
 
 private:
     QTcpServer *tcpServer;
     ServerController *serverController;
+    QWidget *m_parentWidget;  // 用于显示对话框的父窗口
     int clientIdCounter = 1;
     int desiredPlayers = 0;
-    QTextStream standardInput;
 };
 
 #endif // GAMESERVER_H
