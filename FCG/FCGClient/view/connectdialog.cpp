@@ -57,6 +57,7 @@ void ConnectDialog::setupUI()
     mainLayout->addLayout(buttonLayout);
 
     connect(connectButton, &QPushButton::clicked,this,&ConnectDialog::onConnectClicked);
+    connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
 }
 
 void ConnectDialog::onConnectClicked()

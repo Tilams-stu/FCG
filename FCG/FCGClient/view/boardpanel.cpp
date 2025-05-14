@@ -7,7 +7,7 @@ BoardPanel::BoardPanel(QWidget *parent)
 {
     //setStyleSheet("background-color: white;");
     qDebug() << "Creating boardPanel...";
-    //computeBoard();
+    computeBoard();
 }
 
 void BoardPanel::updateBoardState(const QMap<int, QList<int> > &tilesState)
@@ -44,7 +44,7 @@ void BoardPanel::resizeEvent(QResizeEvent *event)
 void BoardPanel::computeBoard()
 {
     QMap<int ,QList<int>> currentState;
-    for(Tile* tile : tiles){
+    for(Tile* tile : qAsConst(tiles)){
         currentState.insert(tile->tileID(),tile->getplanes());
     }
 
@@ -399,7 +399,7 @@ void BoardPanel::Tile::drawPlanes(QPainter &painter) const
         avgY /= n;
     }
 
-    const int r = 20 / 4;
+    const int r = 20 / 2;
     QVector<QPointF> offsets;
 
     switch (m_planes.size()){

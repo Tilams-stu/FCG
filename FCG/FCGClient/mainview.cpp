@@ -57,11 +57,9 @@ void MainView::setupUI()
 
 void MainView::setupConnections()
 {
-    //ControlPanel* panel = new ControlPanel(this);
-
-    //connect(controller, &GameController::gameStateUpdated,
-    //        boardPanel, &BoardPanel::updateBoardState);
     if(controlPanel && controller){
+        connect(controller, &GameController::gameStateUpdated,
+                boardPanel, &BoardPanel::updateBoardState);
         connect(controller, &GameController::serverMessageReceived,
                 this, &MainView::showMessage);
         connect(controller, &GameController::updateGamePhase,

@@ -146,6 +146,7 @@ void ControlPanel::setGamePhase(GamePhase phase, const QString &message)
         const bool rollEnabled = (phase == ROLL_AND_CHOOSE_PLANE);
         const bool flyEnabled = (phase == CHOOSE_FLY_OVER);
 
+        readyButton->setEnabled(rollEnabled);
         rollDiceButton->setEnabled(rollEnabled);
         planeButton1->setEnabled(rollEnabled);
         planeButton2->setEnabled(rollEnabled);

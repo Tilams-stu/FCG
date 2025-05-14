@@ -4,12 +4,12 @@
 #include <QMap>
 #include <QList>
 #include <QDataStream>
+#include <QVariant>
 
 class GameState
 {
 public:
-    GameState() = default;
-    explicit GameState(const QMap<int, QList<int>>& tileStates);
+    GameState(const QMap<int, QList<int>>& initialTileStates = {});
 
     QMap<int, QList<int>> getTileStates() const;
     void setTileStates(const QMap<int, QList<int>>& tileStates);
@@ -21,5 +21,6 @@ private:
     QMap<int, QList<int>> tileStates;
 
 };
+Q_DECLARE_METATYPE(GameState)
 
 #endif // GAMESTATE_H

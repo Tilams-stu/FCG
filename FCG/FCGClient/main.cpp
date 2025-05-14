@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
         controller->setParent(mainView);
         controller->setView(mainView);
         mainView->show();
+
+        controller->connectToServer();
     }
     else {
         return 0;

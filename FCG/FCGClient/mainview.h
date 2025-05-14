@@ -30,7 +30,7 @@ public:
                       const QString& username,
                       QWidget *parent = nullptr);
     ~MainView();
-    void updateBoardState(const QMap<int,QList<int>>& tileStates);
+    //void updateBoardState(const QMap<int,QList<int>>& tileStates);
     void showMessage(const QString& message);
 
     ControlPanel* getControlPanel();

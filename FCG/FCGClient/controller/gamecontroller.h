@@ -2,25 +2,33 @@
 #define GAMECONTROLLER_H
 
 #include <QTcpSocket>
-#include <mainview.h>
-#include <view/controlpanel.h>
+#include <QDataStream>
+#include "mainview.h"
+//#include <view/controlpanel.h>
 #include <model/gamemodel.h>
 #include <QObject>
+#include <QTimer>
+#include <QVariant>
 
-//class MainView;
+class ControlPanel;
+class MainView;
 
 class GameController : public QObject
 {
     Q_OBJECT
 
 public:
-    GameController(GameModel* model ,const QString& host,int port,QObject* parent = nullptr);
+    explicit GameController(GameModel* model ,const QString& host,int port,QObject* parent = nullptr);
+    ~GameController();
     void setView(MainView* view);
+    void connectToServer();
+
 
 public slots:
     void sendReady();
     void sendPlaneOperation(int dice ,int planeId);
     void sendFlyOverChoice(bool isYes);
+    void closeConnection();
 
 signals:
     void gameStateUpdated(const QMap<int,QList<int>> & tileStates);
@@ -39,13 +47,13 @@ private:
     MainView* view;
     QTcpSocket* socket;
     QDataStream inStream;
+    QString host;
+    int port;
     bool isConnected;
+    quint32 expectedBytes = 0;
+    QTimer* connectTimer = nullptr;
 
-    //void connectToServer(const QString& host,int port);
-    void processServerMessage(const QByteArray& message);
-    void handleTextMessage(const QString& message);
-    void closeConnection();
-
+    void sendTypedMessage(const QString& messageType, const QVariant& payload1 = QVariant(), const QVariant& payload2 = QVariant());
 };
 
 #endif // GAMECONTROLLER_H

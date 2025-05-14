@@ -1,7 +1,7 @@
 #include "gamestate.h"
 
-GameState::GameState(const QMap<int, QList<int>>& tileStates)
-    : tileStates(tileStates) {}
+GameState::GameState(const QMap<int, QList<int>>& initialTileStates)
+    : tileStates(initialTileStates) {}
 
 QMap<int, QList<int>> GameState::getTileStates() const
 {
