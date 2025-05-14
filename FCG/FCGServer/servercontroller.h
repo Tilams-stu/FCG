@@ -36,6 +36,7 @@ private:
     QMutex gameLogicMutex;
     GameModel model;
 
+    bool gameHasEnded = false;
     int currentPlayerId = 0;
     int desiredPlayers = 0;
     int readyPlayers = 0;
@@ -51,10 +52,10 @@ private:
     void broadcastGameState(const GameState& state);
 
     void initGameAndStart();
-    void do_fly(int lastPlaneId,int currentPlayerId,const QString &choice ,GameState& state);
+    void do_fly(int lastPlaneId,int currentPlayerId,const QString &choice ,QMap<int, QList<int>>& tileStates);
     void check_is_win(GameState &state);
     int getSpecialJumpTarget(int clientId,int currentPos);
-    int do_plan_OP(int clientId,int dice,int planeId,GameState& state);
+    int do_plan_OP(int clientId,int dice,int planeId, QMap<int, QList<int>>& tileStates);
     int findPlaneCurrentTile(int globalPlaneId,QMap<int ,QList<int>> &tileStates);
     void removePlaneFromTile(int planeId,int tileId,QMap<int ,QList<int>> &tileStates);
     void addPlaneToTile(int planeId,int tileId,QMap<int ,QList<int>> &tileStates);
@@ -65,10 +66,10 @@ private:
     bool isExitRingPosition(int clientId,int pos);
     int getNextOnExitPath(int clientId,int currentPos);
     bool isFinalEnd(int clientId,int pos);
-    void handleCollision(int selfPlaneId,int tileId,QMap<int ,QList<int>> &tileStates,GameState& state);
+    void handleCollision(int selfPlaneId,int tileId,QMap<int ,QList<int>> &tileStates);
     bool isSameColor(int planeId1,int planeId2);
     bool isTileColorMatchesClient(int clientId,int tileId);
-    void collisionDuringFly(int clientId,QMap<int ,QList<int >> &tileStates,GameState& state);
+    void collisionDuringFly(int clientId,QMap<int ,QList<int >> &tileStates);
     void nextTurn();
 
     QString getPlayerColor(int clientId);

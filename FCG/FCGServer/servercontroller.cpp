@@ -6,7 +6,7 @@
 #include <QVariant>
 #include <QThreadPool>
 
-ServerController::ServerController(QObject *parent) : QObject(parent)
+ServerController::ServerController(QObject *parent) : QObject(parent),gameHasEnded(false)
 {
     qRegisterMetaType<QMap<int, QList<int>>>("QMap<int,QList<int>>");
     qRegisterMetaType<GameState>("GameState");
@@ -434,6 +434,13 @@ void ServerController::handleClientAction(int clientId, const QString &messageTy
     qDebug() << "Server received action from client" << clientId << "(" << getPlayerColor(clientId) << "):" << messageType;
     fflush(stdout);
 
+    if (this->gameHasEnded) {
+        if (messageType != "READY_MSG") {
+            sendToClient(clientId, "TEXT_MSG", QVariant("游戏已结束."));
+            qDebug() << "Game has ended. Action" << messageType << "from client" << clientId << "ignored.";
+            return;
+        }
+    }
     if (messageType == "READY_MSG") {
         if (!playerReadyStatus.value(clientId, false)) {
             playerReadyStatus[clientId] = true;
@@ -484,17 +491,21 @@ void ServerController::handleClientAction(int clientId, const QString &messageTy
             }
             qInfo() << "玩家" << getPlayerColor(clientId) << "选择了飞机" << planeId << "，骰子点数" << dice;
 
-            GameState state(model.getBoardState());
-            int result = do_plan_OP(clientId,dice,planeId,state);
+            QMap<int, QList<int>> currentTileStates = model.getBoardState();
+
+            int result = do_plan_OP(clientId,dice,planeId,currentTileStates);
             lastDice = dice;
             lastPlaneId = planeId;
 
-            broadcastGameState(state);
+            model.setBoardState(currentTileStates);
+            GameState gameStateToBroadcast(currentTileStates);
+            broadcastGameState(gameStateToBroadcast);
+
             if(result == 1){
                 sendToClient(clientId, "TEXT_MSG", QVariant("YOUR_TURN_CHOOSE_FLY"));
             }
             else{
-                check_is_win(state);
+                check_is_win(gameStateToBroadcast);
                 nextTurn();
             }
         }
@@ -503,12 +514,14 @@ void ServerController::handleClientAction(int clientId, const QString &messageTy
             QString choiceStr = flyYes ? "YES" : "NO";
             qInfo() << "玩家" <<clientId << "选择飞跃？"<< choiceStr;
 
-            GameState state(model.getBoardState());
-            do_fly(lastPlaneId, clientId, choiceStr, state);
-            model.setBoardState(state.getTileStates());
+            QMap<int, QList<int>> currentTileStates = model.getBoardState();
 
-            broadcastGameState(state);
-            check_is_win(state);
+            do_fly(lastPlaneId, clientId, choiceStr, currentTileStates);
+
+            model.setBoardState(currentTileStates);
+            GameState gameStateToBroadcast(currentTileStates); // Create with the final currentTileStates
+            broadcastGameState(gameStateToBroadcast);
+            check_is_win(gameStateToBroadcast);
             nextTurn();
         }
         else {
@@ -623,7 +636,7 @@ void ServerController::initGameAndStart()
     qDebug() << "[Debug] initGameAndStart: Step 11 - Turn message sent. initGameAndStart complete.";
 }
 
-void ServerController::do_fly(int lastPlaneId, int currentPlayerId, const QString &choice, GameState& state)
+void ServerController::do_fly(int lastPlaneId, int currentPlayerId, const QString &choice, QMap<int, QList<int>>& tileStates)
 {
     qDebug() << "[Debug] do_fly called for plane" << lastPlaneId << "client" << currentPlayerId << "choice" << choice;
 
@@ -636,8 +649,6 @@ void ServerController::do_fly(int lastPlaneId, int currentPlayerId, const QStrin
     //计算全局飞机编号
     int globalPlaneId = (currentPlayerId - 1) * 4 + lastPlaneId;
 
-    //获取棋盘映射
-    QMap<int , QList<int>> tileStates = state.getTileStates();
     if(tileStates.isEmpty()){
         qWarning() << "tileStates 为空，无法执行飞跃操作";
         return;
@@ -660,16 +671,15 @@ void ServerController::do_fly(int lastPlaneId, int currentPlayerId, const QStrin
         addPlaneToTile(globalPlaneId,specialJumpTarget,tileStates);
 
         //处理飞跃时是否发生碰撞
-        collisionDuringFly(currentPlayerId,tileStates,state);
+        collisionDuringFly(currentPlayerId,tileStates);
 
         //处理可能的碰撞
-        handleCollision(globalPlaneId,specialJumpTarget,tileStates,state);
+        handleCollision(globalPlaneId,specialJumpTarget,tileStates);
 
-        //广播更新后的游戏状态
-        broadcastGameState(state);
+
         return ;
     }
-
+    qInfo() << "Player" << currentPlayerId << "plane" << globalPlaneId << "performs fly/4-step move from" << currentTile;
     //执行常规飞跃
     int steps = 4;
     int currentPos = currentTile;
@@ -685,10 +695,8 @@ void ServerController::do_fly(int lastPlaneId, int currentPlayerId, const QStrin
     addPlaneToTile(globalPlaneId ,currentPos,tileStates);
 
     //处理撞机
-    handleCollision(globalPlaneId ,currentPos,tileStates,state);
+    handleCollision(globalPlaneId ,currentPos,tileStates);
 
-    state.setTileStates(tileStates);
-    broadcastGameState(state);
 }
 
 void ServerController::check_is_win(GameState& state)
@@ -734,15 +742,15 @@ int ServerController::getSpecialJumpTarget(int clientId, int currentPos) {
     return -1;
 }
 
-int ServerController::do_plan_OP(int clientId, int dice, int planeId, GameState& state)
+int ServerController::do_plan_OP(int clientId, int dice, int planeId,  QMap<int, QList<int>>& tileStates)
 {
     qDebug() << "[Debug] do_plan_OP called for client" << clientId << "dice" << dice << "plane" << planeId;
-    QMutexLocker locker(&clientsMutex);
+    //QMutexLocker locker(&clientsMutex);
 
     const int globalPlaneId = (clientId - 1)*4 + planeId;
     bool backwardFlag = false;
 
-    QMap<int ,QList<int>> tileStates = state.getTileStates();
+    //QMap<int ,QList<int>> tileStates = state.getTileStates();
     if(tileStates.isEmpty()){
         qCritical() << "tileStates 为空，无法执行操作";
         return 0;
@@ -761,16 +769,21 @@ int ServerController::do_plan_OP(int clientId, int dice, int planeId, GameState&
             removePlaneFromTile(globalPlaneId,currentTile,tileStates);
             const int startTile = getStartTile(clientId);
             addPlaneToTile(globalPlaneId,startTile,tileStates);
-            broadcastGameState(state);
+            qInfo() << "Player" << clientId << "plane" << planeId << "takes off to tile" << startTile;
+            return 0;
         }
-        return 0;
+        else {
+            qInfo() << "Player" << clientId << "plane" << planeId << "is in airport but rolled" << dice << ". Cannot take off.";
+            sendToClient(clientId, "TEXT_MSG", QVariant("点数不足以起飞"));
+            return 0; // 不能起飞，操作无效或不完整
+        }
     }
 
     //移动逻辑
     int steps = dice;
     int currentPosition = currentTile;
     while(steps-- >0){
-        QThread::msleep(100);
+        QThread::msleep(200);
 
         removePlaneFromTile(globalPlaneId,currentPosition,tileStates);
         int nextPos = isExitRingPosition(clientId ,currentPosition)
@@ -779,8 +792,11 @@ int ServerController::do_plan_OP(int clientId, int dice, int planeId, GameState&
         if(backwardFlag) nextPos = currentPosition-1;
 
         addPlaneToTile(globalPlaneId ,nextPos,tileStates);
-        broadcastGameState(state);
+        //broadcastGameState(state);
         currentPosition = nextPos;
+
+        GameState intermediateState(tileStates);
+        broadcastGameState(intermediateState);
 
         //终点检测
         if(isFinalEnd(clientId , currentPosition)){
@@ -789,16 +805,16 @@ int ServerController::do_plan_OP(int clientId, int dice, int planeId, GameState&
             }else{
                 removePlaneFromTile(globalPlaneId,currentPosition,tileStates);
                 const int airporTile = getAirportTile(clientId ,planeId);
-                addPlaneToTile(100,airporTile,tileStates);
-                broadcastGameState(state);
+                addPlaneToTile(100+globalPlaneId,airporTile,tileStates);
+                //broadcastGameState(state);
             }
         }
     }
-    model.setBoardState(tileStates);
-    state.setTileStates(tileStates);
+    //model.setBoardState(tileStates);
+    //state.setTileStates(tileStates);
 
     //碰撞处理
-    handleCollision(globalPlaneId ,currentPosition,tileStates,state);
+    handleCollision(globalPlaneId ,currentPosition,tileStates);
 
     return isTileColorMatchesClient(clientId , currentPosition)
                    && !isExitRingPosition(clientId , currentPosition) ? 1 : 0;
@@ -895,8 +911,10 @@ bool ServerController::isFinalEnd(int clientId, int pos)
     return pos == endPositions.value(clientId, -1);
 }
 
-void ServerController::handleCollision(int selfPlaneId, int tileId, QMap<int, QList<int> > &tileStates, GameState& state)
+void ServerController::handleCollision(int selfPlaneId, int tileId, QMap<int, QList<int> > &tileStates)
 {
+    if (!tileStates.contains(tileId)) return;
+
     QList<int> &planes = tileStates[tileId];
     if(planes.size() <= 1)return ;
 
@@ -913,7 +931,6 @@ void ServerController::handleCollision(int selfPlaneId, int tileId, QMap<int, QL
         const int airportTile = getAirportTile(otherClient,otherPlane);
         addPlaneToTile(pid ,airportTile,tileStates);
     }
-    broadcastGameState(state);
 }
 
 bool ServerController::isSameColor(int planeId1, int planeId2)
@@ -929,7 +946,7 @@ bool ServerController::isTileColorMatchesClient(int clientId, int tileId)
     return colorMap.value(offset, 0) == clientId;
 }
 
-void ServerController::collisionDuringFly(int clientId, QMap<int, QList<int> > &tileStates, GameState& state)
+void ServerController::collisionDuringFly(int clientId, QMap<int, QList<int> > &tileStates)
 {
     static QMap<int, int> flyTiles{{1,87}, {2,93}, {3,81}, {4,75}};
     const int tileId = flyTiles.value(clientId, 0);
@@ -952,7 +969,6 @@ void ServerController::collisionDuringFly(int clientId, QMap<int, QList<int> > &
         addPlaneToTile(pid, airportTile, tileStates);
     }
 
-    broadcastGameState(state);
 }
 
 void ServerController::nextTurn()

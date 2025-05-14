@@ -132,30 +132,39 @@ void ControlPanel::setupConnections()
     connect(planeButton3, &QPushButton::clicked, this,[this](){ handlePlaneButton(3); });
     connect(planeButton4, &QPushButton::clicked, this,[this](){ handlePlaneButton(4); });
 
-    connect(flyYesButton, &QPushButton::clicked, this,[this](){ emit flyOverChoice(true); });
-    connect(flyNoButton, &QPushButton::clicked, this,[this](){ emit flyOverChoice(false); });
+    connect(flyYesButton, &QPushButton::clicked, this,[this](){ this->handleFlyOver(true); });
+    connect(flyNoButton, &QPushButton::clicked, this,[this](){ this->handleFlyOver(false); });
 }
 
 
 void ControlPanel::setGamePhase(GamePhase phase, const QString &message)
 {
     serverMessage->setText(message);
+    setAllControlsEnabled(false);
 
-    if(phase == WAITING) setAllControlsEnabled(false);
-    else{
-        const bool rollEnabled = (phase == ROLL_AND_CHOOSE_PLANE);
-        const bool flyEnabled = (phase == CHOOSE_FLY_OVER);
+    if (phase == WAITING) {
+        if (message.contains(tr("等待")) || message.contains(tr("连接到服务器"))) {
+            readyButton->setEnabled(true);
+        }
 
-        readyButton->setEnabled(rollEnabled);
-        rollDiceButton->setEnabled(rollEnabled);
-        planeButton1->setEnabled(rollEnabled);
-        planeButton2->setEnabled(rollEnabled);
-        planeButton3->setEnabled(rollEnabled);
-        planeButton4->setEnabled(rollEnabled);
-        flyYesButton->setEnabled(flyEnabled);
-        flyNoButton->setEnabled(flyEnabled);
+    } else if (phase == ROLL_AND_CHOOSE_PLANE) {
+        rollDiceButton->setEnabled(true);
+        readyButton->setEnabled(false);
+        planeButton1->setEnabled(true);
+        planeButton2->setEnabled(true);
+        planeButton3->setEnabled(true);
+        planeButton4->setEnabled(true);
+    } else if (phase == CHOOSE_FLY_OVER) {
+        flyYesButton->setEnabled(true);
+        flyNoButton->setEnabled(true);
+        readyButton->setEnabled(false);
+    }
+    else if (phase == GAME_ENDED) {
+        setAllControlsEnabled(false);
+        readyButton->setEnabled(false);
     }
 }
+
 
 void ControlPanel::handleReady()
 {

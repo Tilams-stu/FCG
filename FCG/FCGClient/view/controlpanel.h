@@ -25,7 +25,8 @@ public:
     enum GamePhase {
         ROLL_AND_CHOOSE_PLANE,
         CHOOSE_FLY_OVER,
-        WAITING
+        WAITING,
+        GAME_ENDED
     };
     Q_ENUM(GamePhase)
 

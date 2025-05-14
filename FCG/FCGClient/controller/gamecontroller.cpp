@@ -199,7 +199,10 @@ void GameController::handleReadyRead()
             } else if (content.startsWith("YOUR_TURN_CHOOSE_FLY")) {
                 uiMessage = tr("请选择是否飞跃!");
                 phase = ControlPanel::GamePhase::CHOOSE_FLY_OVER;
-            } else if (content.startsWith("ERROR:")) {
+            }else if (content.contains("已赢得游戏！游戏结束。")) {
+                uiMessage = content;
+                phase = ControlPanel::GamePhase::GAME_ENDED;
+            }else if (content.startsWith("ERROR:")) {
                 uiMessage = tr("服务器错误: %1").arg(content.mid(6));
             } else if (content.startsWith("WELCOME:")) {
                 phase = ControlPanel::GamePhase::WAITING;
